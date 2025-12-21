@@ -12,34 +12,23 @@ import java.util.List;
 @Service
 public class DemandForecastServiceImpl implements DemandForecastService {
 
-    private final DemandForecastRepository demandForecastRepository;
+    private final DemandForecastRepository repo;
 
-    public DemandForecastServiceImpl(DemandForecastRepository demandForecastRepository) {
-        this.demandForecastRepository = demandForecastRepository;
+    public DemandForecastServiceImpl(DemandForecastRepository repo) {
+        this.repo = repo;
     }
 
-    @Override
     public DemandForecast createForecast(DemandForecast forecast) {
-        if (forecast.getForecastDate().isBefore(LocalDate.now()) || forecast.getForecastDate().isEqual(LocalDate.now())) {
+        if (!forecast.getForecastDate().isAfter(LocalDate.now())) {
             throw new BadRequestException("Forecast date must be in the future");
         }
         if (forecast.getPredictedDemand() < 0) {
-            throw new BadRequestException("Predicted demand must be non-negative");
+            throw new BadRequestException("Predicted demand must be >= 0");
         }
-        return demandForecastRepository.save(forecast);
+        return repo.save(forecast);
     }
 
-    @Override
     public List<DemandForecast> getForecastsForStore(Long storeId) {
-        return demandForecastRepository.findByStore_Id(storeId);
-    }
-
-    @Override
-    public DemandForecast getForecast(Long storeId, Long productId) {
-        List<DemandForecast> forecasts = demandForecastRepository.findByStore_Id(storeId);
-        return forecasts.stream()
-                .filter(f -> f.getProduct().getId().equals(productId))
-                .findFirst()
-                .orElse(null);
+        return repo.findByStore_Id(storeId);
     }
 }

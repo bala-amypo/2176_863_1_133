@@ -18,7 +18,6 @@ public class ProductServiceImpl implements ProductService {
         this.productRepository = productRepository;
     }
 
-    @Override
     public Product createProduct(Product product) {
         if (productRepository.findBySku(product.getSku()) != null) {
             throw new BadRequestException("SKU already exists");
@@ -26,18 +25,15 @@ public class ProductServiceImpl implements ProductService {
         return productRepository.save(product);
     }
 
-    @Override
     public Product getProductById(Long id) {
         return productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
     }
 
-    @Override
     public List<Product> getAllProducts() {
         return productRepository.findAll();
     }
 
-    @Override
     public void deactivateProduct(Long id) {
         Product product = getProductById(id);
         product.setActive(false);

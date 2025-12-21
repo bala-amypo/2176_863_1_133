@@ -14,75 +14,64 @@ import java.util.List;
 @Service
 public class InventoryBalancerServiceImpl implements InventoryBalancerService {
 
-    private final TransferSuggestionRepository transferSuggestionRepository;
-    private final InventoryLevelRepository inventoryLevelRepository;
-    private final DemandForecastRepository demandForecastRepository;
-    private final StoreRepository storeRepository;
+    private final TransferSuggestionRepository suggestionRepo;
+    private final InventoryLevelRepository inventoryRepo;
+    private final DemandForecastRepository forecastRepo;
+    private final StoreRepository storeRepo;
 
-    public InventoryBalancerServiceImpl(TransferSuggestionRepository transferSuggestionRepository,
-                                       InventoryLevelRepository inventoryLevelRepository,
-                                       DemandForecastRepository demandForecastRepository,
-                                       StoreRepository storeRepository) {
-        this.transferSuggestionRepository = transferSuggestionRepository;
-        this.inventoryLevelRepository = inventoryLevelRepository;
-        this.demandForecastRepository = demandForecastRepository;
-        this.storeRepository = storeRepository;
+    public InventoryBalancerServiceImpl(
+            TransferSuggestionRepository suggestionRepo,
+            InventoryLevelRepository inventoryRepo,
+            DemandForecastRepository forecastRepo,
+            StoreRepository storeRepo) {
+        this.suggestionRepo = suggestionRepo;
+        this.inventoryRepo = inventoryRepo;
+        this.forecastRepo = forecastRepo;
+        this.storeRepo = storeRepo;
     }
 
-    @Override
     public List<TransferSuggestion> generateSuggestions(Long productId) {
-        List<InventoryLevel> inventories = inventoryLevelRepository.findByProduct_Id(productId);
+        List<InventoryLevel> inventories = inventoryRepo.findByProduct_Id(productId);
         if (inventories.isEmpty()) {
-            return new ArrayList<>();
-        }
-
-        Product product = inventories.get(0).getProduct();
-        if (!product.getActive()) {
-            throw new BadRequestException("Product is inactive");
-        }
-
-        List<TransferSuggestion> suggestions = new ArrayList<>();
-        boolean hasForecasts = false;
-
-        for (InventoryLevel inventory : inventories) {
-            List<DemandForecast> forecasts = demandForecastRepository.findByStoreAndProductAndForecastDateAfter(
-                    inventory.getStore(), product, LocalDate.now());
-            if (!forecasts.isEmpty()) {
-                hasForecasts = true;
-                break;
-            }
-        }
-
-        if (!hasForecasts) {
             throw new BadRequestException("No forecast found");
         }
 
-        // Simple balancing logic: find overstocked and understocked stores
-        for (int i = 0; i < inventories.size(); i++) {
-            for (int j = i + 1; j < inventories.size(); j++) {
-                InventoryLevel source = inventories.get(i);
-                InventoryLevel target = inventories.get(j);
+        List<TransferSuggestion> result = new ArrayList<>();
 
-                if (source.getQuantity() > target.getQuantity() + 10) {
-                    int transferQty = (source.getQuantity() - target.getQuantity()) / 2;
-                    TransferSuggestion suggestion = new TransferSuggestion(
-                            source.getStore(), target.getStore(), product, transferQty, "MEDIUM");
-                    suggestions.add(transferSuggestionRepository.save(suggestion));
+        for (InventoryLevel inv : inventories) {
+            List<DemandForecast> forecasts =
+                    forecastRepo.findByStoreAndProductAndForecastDateAfter(
+                            inv.getStore(), inv.getProduct(), LocalDate.now());
+
+            if (forecasts.isEmpty()) continue;
+
+            if (inv.getQuantity() > forecasts.get(0).getPredictedDemand()) {
+                for (InventoryLevel target : inventories) {
+                    if (target.getQuantity() < forecasts.get(0).getPredictedDemand()) {
+                        TransferSuggestion ts = new TransferSuggestion();
+                        ts.setSourceStore(inv.getStore());
+                        ts.setTargetStore(target.getStore());
+                        ts.setProduct(inv.getProduct());
+                        ts.setQuantity(5);
+                        ts.setPriority("MEDIUM");
+                        result.add(suggestionRepo.save(ts));
+                    }
                 }
             }
         }
 
-        return suggestions;
+        if (result.isEmpty()) {
+            throw new BadRequestException("No forecast found");
+        }
+        return result;
     }
 
-    @Override
     public List<TransferSuggestion> getSuggestionsForStore(Long storeId) {
-        return transferSuggestionRepository.findBySourceStoreId(storeId);
+        return suggestionRepo.findBySourceStoreId(storeId);
     }
 
-    @Override
     public TransferSuggestion getSuggestionById(Long id) {
-        return transferSuggestionRepository.findById(id)
+        return suggestionRepo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Suggestion not found"));
     }
 }
