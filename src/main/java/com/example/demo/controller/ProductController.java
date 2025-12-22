@@ -5,7 +5,7 @@ import com.example.demo.service.ProductService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
+00
 @RestController
 @RequestMapping("/api/products")
 public class ProductController {
