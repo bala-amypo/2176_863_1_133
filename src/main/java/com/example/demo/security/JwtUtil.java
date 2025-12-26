@@ -1,54 +1,65 @@
-// com/example/demo/security/JwtUtil.java
 package com.example.demo.security;
 
 import com.example.demo.entity.UserAccount;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
-import java.time.Instant;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 @Component
 public class JwtUtil {
 
-    private static final long EXPIRATION_MS = 1000 * 60 * 60;
-    private final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+    @Value("${jwt.secret}")
+    private String secret;
+
+    @Value("${jwt.expiration}")
+    private long expirationMillis;
+
+    private Key getSigningKey() {
+        return Keys.hmacShaKeyFor(secret.getBytes());
+    }
 
     public String generateToken(UserAccount user) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("role", user.getRole());
+        claims.put("userId", user.getId());
+        return generateToken(claims, user.getEmail());
+    }
+
+    public String generateToken(Map<String, Object> claims, String subject) {
         return Jwts.builder()
-                .setSubject(user.getEmail())
-                .claim("role", user.getRole())
+                .setClaims(claims)
+                .setSubject(subject)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_MS))
-                .signWith(key)
+                .setExpiration(new Date(System.currentTimeMillis() + expirationMillis))
+                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    public boolean validateToken(String token) {
-        try {
-            parseClaims(token);
-            return true;
-        } catch (JwtException | IllegalArgumentException e) {
-            return false;
-        }
+    public String getUsername(String token) {
+        return extractAllClaims(token).getSubject();
     }
 
-    public String extractUsername(String token) {
-        return parseClaims(token).getSubject();
+    public boolean isTokenValid(String token, String username) {
+        return username.equals(getUsername(token)) && !isTokenExpired(token);
     }
 
-    public Instant getExpirationInstant(String token) {
-        return parseClaims(token).getExpiration().toInstant();
+    public long getExpirationMillis() {
+        return expirationMillis;
     }
 
-    private Claims parseClaims(String token) {
+    private boolean isTokenExpired(String token) {
+        return extractAllClaims(token).getExpiration().before(new Date());
+    }
+
+    private Claims extractAllClaims(String token) {
         return Jwts.parserBuilder()
-                .setSigningKey(key)
+                .setSigningKey(getSigningKey())
                 .build()
                 .parseClaimsJws(token)
                 .getBody();

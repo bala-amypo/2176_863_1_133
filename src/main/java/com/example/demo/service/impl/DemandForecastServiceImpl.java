@@ -4,6 +4,7 @@ import com.example.demo.entity.DemandForecast;
 import com.example.demo.exception.BadRequestException;
 import com.example.demo.repository.DemandForecastRepository;
 import com.example.demo.service.DemandForecastService;
+
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -18,16 +19,15 @@ public class DemandForecastServiceImpl implements DemandForecastService {
         this.repo = repo;
     }
 
+    @Override
     public DemandForecast createForecast(DemandForecast forecast) {
-        if (!forecast.getForecastDate().isAfter(LocalDate.now())) {
-            throw new BadRequestException("Forecast date must be in the future");
-        }
-        if (forecast.getPredictedDemand() < 0) {
-            throw new BadRequestException("Predicted demand must be >= 0");
+        if (forecast.getForecastDate().isBefore(LocalDate.now())) {
+            throw new BadRequestException("Forecast date must be future");
         }
         return repo.save(forecast);
     }
 
+    @Override
     public List<DemandForecast> getForecastsForStore(Long storeId) {
         return repo.findByStore_Id(storeId);
     }

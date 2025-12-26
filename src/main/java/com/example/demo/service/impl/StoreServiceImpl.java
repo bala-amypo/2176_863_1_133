@@ -12,39 +12,45 @@ import java.util.List;
 @Service
 public class StoreServiceImpl implements StoreService {
 
-    private final StoreRepository storeRepository;
+    private final StoreRepository storeRepo;
 
-    public StoreServiceImpl(StoreRepository storeRepository) {
-        this.storeRepository = storeRepository;
+    public StoreServiceImpl(StoreRepository storeRepo) {
+        this.storeRepo = storeRepo;
     }
 
+    @Override
     public Store createStore(Store store) {
-        if (storeRepository.findByStoreName(store.getStoreName()) != null) {
+        if (storeRepo.findByStoreName(store.getStoreName()).isPresent()) {
             throw new BadRequestException("Store name already exists");
         }
-        return storeRepository.save(store);
+        return storeRepo.save(store);
     }
 
+    @Override
     public Store getStoreById(Long id) {
-        return storeRepository.findById(id)
+        return storeRepo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Store not found"));
     }
 
+    @Override
     public List<Store> getAllStores() {
-        return storeRepository.findAll();
+        return storeRepo.findAll();
     }
 
+    @Override
     public Store updateStore(Long id, Store update) {
         Store store = getStoreById(id);
         store.setStoreName(update.getStoreName());
-        store.setRegion(update.getRegion());
         store.setAddress(update.getAddress());
-        return storeRepository.save(store);
+        store.setRegion(update.getRegion());
+        store.setActive(update.isActive());
+        return storeRepo.save(store);
     }
 
+    @Override
     public void deactivateStore(Long id) {
         Store store = getStoreById(id);
         store.setActive(false);
-        storeRepository.save(store);
+        storeRepo.save(store);
     }
 }
