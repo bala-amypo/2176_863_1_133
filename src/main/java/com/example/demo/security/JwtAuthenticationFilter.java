@@ -1,4 +1,3 @@
-// com/example/demo/security/JwtAuthenticationFilter.java
 package com.example.demo.security;
 
 import jakarta.servlet.FilterChain;
@@ -20,8 +19,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
     private final CustomUserDetailsService userDetailsService;
 
-    public JwtAuthenticationFilter(JwtUtil jwtUtil,
-                                   CustomUserDetailsService userDetailsService) {
+    public JwtAuthenticationFilter(JwtUtil jwtUtil, CustomUserDetailsService userDetailsService) {
         this.jwtUtil = jwtUtil;
         this.userDetailsService = userDetailsService;
     }
@@ -32,32 +30,37 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
+        // Extract JWT token from the Authorization header
         String header = request.getHeader("Authorization");
 
         if (header != null && header.startsWith("Bearer ")) {
-            String token = header.substring(7);
+            String token = header.substring(7);  // Extract the token
 
+            // Validate the token
             if (jwtUtil.validateToken(token)) {
+                // Extract the username (email) from the token
                 String email = jwtUtil.extractUsername(token);
-                UserDetails userDetails =
-                        userDetailsService.loadUserByUsername(email);
 
+                // Load user details by email
+                UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+
+                // Create the authentication object
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(
-                                userDetails,
-                                null,
+                                userDetails, 
+                                null, 
                                 userDetails.getAuthorities()
                         );
 
-                authentication.setDetails(
-                        new WebAuthenticationDetailsSource()
-                                .buildDetails(request)
-                );
+                // Set the authentication details (e.g., IP, session, etc.)
+                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                SecurityContextHolder.getContext()
-                        .setAuthentication(authentication);
+                // Set the authentication in the SecurityContext
+                SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         }
+
+        // Continue with the filter chain (continue to next filter or controller)
         filterChain.doFilter(request, response);
     }
 }
