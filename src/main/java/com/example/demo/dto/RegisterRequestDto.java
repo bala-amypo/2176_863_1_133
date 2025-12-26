@@ -1,4 +1,3 @@
-// com/example/demo/dto/RegisterRequestDto.java
 package com.example.demo.dto;
 
 public class RegisterRequestDto {
@@ -7,6 +6,8 @@ public class RegisterRequestDto {
     private String fullName;
     private String password;
     private String role;
+
+    // ===== Getters & Setters =====
 
     public String getEmail() {
         return email;
@@ -19,7 +20,7 @@ public class RegisterRequestDto {
     public String getFullName() {
         return fullName;
     }
-
+    
     public void setFullName(String fullName) {
         this.fullName = fullName;
     }
@@ -31,7 +32,7 @@ public class RegisterRequestDto {
     public void setPassword(String password) {
         this.password = password;
     }
-    
+
     public String getRole() {
         return role;
     }

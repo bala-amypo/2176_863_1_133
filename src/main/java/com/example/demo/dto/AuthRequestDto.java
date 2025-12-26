@@ -1,10 +1,11 @@
-// com/example/demo/dto/AuthRequestDto.java
 package com.example.demo.dto;
 
 public class AuthRequestDto {
 
     private String email;
     private String password;
+
+    // ===== Getters & Setters =====
 
     public String getEmail() {
         return email;
@@ -13,7 +14,7 @@ public class AuthRequestDto {
     public void setEmail(String email) {
         this.email = email;
     }
-    
+
     public String getPassword() {
         return password;
     }

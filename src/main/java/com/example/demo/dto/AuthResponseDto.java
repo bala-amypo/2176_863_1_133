@@ -1,34 +1,24 @@
-// com/example/demo/dto/AuthResponseDto.java
 package com.example.demo.dto;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 
 public class AuthResponseDto {
 
     private String token;
-    private Instant expiresAt;
+    private LocalDateTime expiresAt;
 
-    public AuthResponseDto() {
-    }
-
-    public AuthResponseDto(String token, Instant expiresAt) {
+    public AuthResponseDto(String token, LocalDateTime expiresAt) {
         this.token = token;
         this.expiresAt = expiresAt;
     }
+
+    // ===== Getters =====
 
     public String getToken() {
         return token;
     }
-    
-    public void setToken(String token) {
-        this.token = token;
-    }
-    
-    public Instant getExpiresAt() {
+
+    public LocalDateTime getExpiresAt() {
         return expiresAt;
-    }
-    
-    public void setExpiresAt(Instant expiresAt) {
-        this.expiresAt = expiresAt;
     }
 }

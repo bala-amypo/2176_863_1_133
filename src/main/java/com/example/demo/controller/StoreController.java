@@ -10,24 +10,24 @@ import java.util.List;
 @RequestMapping("/api/stores")
 public class StoreController {
 
-    private final StoreService service;
+    private final StoreService storeService;
 
-    public StoreController(StoreService service) {
-        this.service = service;
+    public StoreController(StoreService storeService) {
+        this.storeService = storeService;
     }
 
     @PostMapping
     public Store create(@RequestBody Store store) {
-        return service.createStore(store);
-    }
-
-    @GetMapping("/{id}")
-    public Store get(@PathVariable Long id) {
-        return service.getStoreById(id);
+        return storeService.createStore(store);
     }
 
     @GetMapping
-    public List<Store> list() {
-        return service.getAllStores();
+    public List<Store> getAll() {
+        return storeService.getAllStores();
+    }
+
+    @GetMapping("/{id}")
+    public Store getById(@PathVariable Long id) {
+        return storeService.getStoreById(id);
     }
 }

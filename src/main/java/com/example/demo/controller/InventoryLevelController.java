@@ -10,24 +10,30 @@ import java.util.List;
 @RequestMapping("/api/inventory")
 public class InventoryLevelController {
 
-    private final InventoryLevelService service;
+    private final InventoryLevelService inventoryService;
 
-    public InventoryLevelController(InventoryLevelService service) {
-        this.service = service;
+    public InventoryLevelController(InventoryLevelService inventoryService) {
+        this.inventoryService = inventoryService;
     }
 
     @PostMapping
-    public InventoryLevel createOrUpdate(@RequestBody InventoryLevel inv) {
-        return service.createOrUpdateInventory(inv);
+    public InventoryLevel createOrUpdate(
+            @RequestBody InventoryLevel inventoryLevel) {
+
+        return inventoryService.createOrUpdateInventory(inventoryLevel);
     }
 
     @GetMapping("/store/{storeId}")
-    public List<InventoryLevel> byStore(@PathVariable Long storeId) {
-        return service.getInventoryForStore(storeId);
+    public List<InventoryLevel> getByStore(
+            @PathVariable Long storeId) {
+
+        return inventoryService.getInventoryForStore(storeId);
     }
 
     @GetMapping("/product/{productId}")
-    public List<InventoryLevel> byProduct(@PathVariable Long productId) {
-        return service.getInventoryForProduct(productId);
+    public List<InventoryLevel> getByProduct(
+            @PathVariable Long productId) {
+
+        return inventoryService.getInventoryForProduct(productId);
     }
 }
