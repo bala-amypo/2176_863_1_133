@@ -8,6 +8,5 @@ class MultiLocationInventoryBalancerTest {
 
     @Test
     void contextLoads() {
-        // Test passes if Spring Boot application starts
     }
 }
