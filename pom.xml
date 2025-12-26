@@ -9,7 +9,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.3.4</version>
+        <version>3.3.4</version> <!-- Ensure you're using Spring Boot 3.x -->
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
@@ -28,12 +28,6 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-        <!-- Spring Boot Starter Data JPA (for Database interaction) -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jpa</artifactId>
-        </dependency>
-
         <!-- Spring Security Core -->
         <dependency>
             <groupId>org.springframework.security</groupId>
@@ -41,7 +35,7 @@
             <version>5.8.1</version>  <!-- Or the version you need -->
         </dependency>
 
-        <!-- Spring Security Web (for HTTP Security) -->
+        <!-- Spring Security Web -->
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-web</artifactId>
@@ -97,7 +91,7 @@
         <dependency>
             <groupId>jakarta.servlet</groupId>
             <artifactId>jakarta.servlet-api</artifactId>
-            <version>5.0.0</version> <!-- This version is compatible with Spring Boot 3.x -->
+            <version>5.0.0</version> <!-- Jakarta Servlet API version for Spring Boot 3.x -->
             <scope>provided</scope> <!-- Servlet API should be provided by the container -->
         </dependency>
 
