@@ -1,73 +1,68 @@
 package com.example.demo.service.impl;
 
-import com.example.demo.entity.*;
+import com.example.demo.entity.InventoryLevel;
+import com.example.demo.entity.Product;
+import com.example.demo.entity.Store;
 import com.example.demo.exception.BadRequestException;
-import com.example.demo.exception.ResourceNotFoundException;
-import com.example.demo.repository.*;
-import com.example.demo.service.InventoryBalancerService;
+import com.example.demo.repository.InventoryLevelRepository;
+import com.example.demo.repository.ProductRepository;
+import com.example.demo.repository.StoreRepository;
+import com.example.demo.service.InventoryLevelService;
+
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
-public class InventoryBalancerServiceImpl implements InventoryBalancerService {
+public class InventoryLevelServiceImpl implements InventoryLevelService {
 
-    private final TransferSuggestionRepository transferRepo;
     private final InventoryLevelRepository inventoryRepo;
-    private final DemandForecastRepository forecastRepo;
     private final StoreRepository storeRepo;
+    private final ProductRepository productRepo;
 
-    public InventoryBalancerServiceImpl(
-            TransferSuggestionRepository transferRepo,
+    public InventoryLevelServiceImpl(
             InventoryLevelRepository inventoryRepo,
-            DemandForecastRepository forecastRepo,
-            StoreRepository storeRepo) {
-
-        this.transferRepo = transferRepo;
+            StoreRepository storeRepo,
+            ProductRepository productRepo) {
         this.inventoryRepo = inventoryRepo;
-        this.forecastRepo = forecastRepo;
         this.storeRepo = storeRepo;
+        this.productRepo = productRepo;
     }
 
     @Override
-    public List<TransferSuggestion> generateSuggestions(Long productId) {
-        List<InventoryLevel> inventories = inventoryRepo.findByProduct_Id(productId);
+   
+public InventoryLevel createOrUpdateInventory(InventoryLevel inv) {
 
-        if (inventories.isEmpty()) {
-            throw new BadRequestException("No forecast found");
-        }
+    if (inv.getQuantity() < 0) {
+        throw new BadRequestException("Quantity must be >= 0");
+    }
 
-        List<TransferSuggestion> suggestions = new ArrayList<>();
+    Store store = storeRepo.findById(inv.getStore().getId())
+            .orElseThrow(() -> new BadRequestException("Store not found"));
 
-        for (InventoryLevel source : inventories) {
-            for (InventoryLevel target : inventories) {
-                if (!source.getStore().getId().equals(target.getStore().getId())
-                        && source.getQuantity() > target.getQuantity()) {
+    Product product = productRepo.findById(inv.getProduct().getId())
+            .orElseThrow(() -> new BadRequestException("Product not found"));
 
-                    TransferSuggestion ts = new TransferSuggestion();
-                    ts.setProduct(source.getProduct());
-                    ts.setSourceStore(source.getStore());
-                    ts.setTargetStore(target.getStore());
-                    ts.setSuggestedQuantity(5);
-                    ts.setReason("Auto balance");
+    return inventoryRepo.findByStoreAndProduct(store, product)
+            .map(existing -> {
+                existing.setQuantity(inv.getQuantity());
+                return inventoryRepo.save(existing);
+            })
+            .orElseGet(() -> {
+                inv.setStore(store);
+                inv.setProduct(product);
+                return inventoryRepo.save(inv);
+            });
+}
 
-                    suggestions.add(transferRepo.save(ts));
-                }
-            }
-        }
-        return suggestions;
+
+    @Override
+    public List<InventoryLevel> getInventoryForStore(Long storeId) {
+        return inventoryRepo.findByStore_Id(storeId);
     }
 
     @Override
-    public List<TransferSuggestion> getSuggestionsForStore(Long storeId) {
-        return transferRepo.findBySourceStore_Id(storeId);
-    }
-
-    @Override
-    public TransferSuggestion getSuggestionById(Long id) {
-        return transferRepo.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Suggestion not found"));
+    public List<InventoryLevel> getInventoryForProduct(Long productId) {
+        return inventoryRepo.findByProduct_Id(productId);
     }
 }
