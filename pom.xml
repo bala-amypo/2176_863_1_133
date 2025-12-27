@@ -102,13 +102,13 @@
             <artifactId>mockito-core</artifactId>
             <scope>test</scope>
         </dependency>
-<!-- TestNG -->
+<!-- 
 <dependency>
     <groupId>org.testng</groupId>
     <artifactId>testng</artifactId>
     <version>7.9.0</version>
     <scope>test</scope>
-</dependency>
+</dependency> -->
 
     </dependencies>
 
