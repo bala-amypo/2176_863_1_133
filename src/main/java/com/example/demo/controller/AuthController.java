@@ -13,7 +13,34 @@ public class AuthController {
 
     private final AuthService authService;
 
+    public AuthController(AuthService authService) {package com.example.demo.controller;
+
+import com.example.demo.dto.AuthRequestDto;
+import com.example.demo.dto.RegisterRequestDto;
+import com.example.demo.service.AuthService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/auth")
+public class AuthController {
+    private final AuthService authService;
+
     public AuthController(AuthService authService) {
+        this.authService = authService;
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<?> register(@RequestBody RegisterRequestDto dto) {
+        return ResponseEntity.ok(authService.register(dto));
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<Map<String, String>> login(@RequestBody AuthRequestDto dto) {
+        return ResponseEntity.ok(authService.login(dto));
+    }
+}
         this.authService = authService;
     }
 

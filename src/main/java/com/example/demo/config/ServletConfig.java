@@ -10,9 +10,9 @@ public class ServletConfig {
 
     @Bean
     public ServletRegistrationBean<SimpleStatusServlet> simpleStatusServlet() {
-        return new ServletRegistrationBean<>(
-                new SimpleStatusServlet(),
-                "/simple-status"
-        );
+        ServletRegistrationBean<SimpleStatusServlet> bean = new ServletRegistrationBean<>();
+        bean.setServlet(new SimpleStatusServlet());
+        bean.addUrlMappings("/simple-status");
+        return bean;
     }
 }
