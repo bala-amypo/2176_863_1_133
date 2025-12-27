@@ -7,5 +7,7 @@ import java.util.List;
 
 public interface TransferSuggestionRepository extends JpaRepository<TransferSuggestion, Long> {
 
+    List<TransferSuggestion> findBySourceStore_Id(Long storeId);
+
     List<TransferSuggestion> findByProduct_Id(Long productId);
 }
