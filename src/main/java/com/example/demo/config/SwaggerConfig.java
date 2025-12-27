@@ -5,7 +5,6 @@ import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -17,28 +16,18 @@ public class SwaggerConfig {
     @Bean
     public OpenAPI customOpenAPI() {
 
+        SecurityScheme bearerAuth = new SecurityScheme()
+                .type(SecurityScheme.Type.HTTP)
+                .scheme("bearer")
+                .bearerFormat("JWT");
+
         return new OpenAPI()
-
-                // ✅ KEEP YOUR SERVER (unchanged)
                 .servers(List.of(
-                        new Server().url("https://9196.pro604cr.amypo.ai/")
+                        new Server().url("https://9023.32procr.amypo.ai/")
                 ))
-
-                // ✅ ADD SECURITY REQUIREMENT (this triggers Authorize button)
-                .addSecurityItem(
-                        new SecurityRequirement().addList("bearerAuth")
-                )
-
-                // ✅ DEFINE JWT BEARER SCHEME
-                .components(
-                        new Components()
-                                .addSecuritySchemes(
-                                        "bearerAuth",
-                                        new SecurityScheme()
-                                                .type(SecurityScheme.Type.HTTP)
-                                                .scheme("bearer")
-                                                .bearerFormat("JWT")
-                                )
-                );
+                .components(new Components()
+                        .addSecuritySchemes("bearerAuth", bearerAuth))
+                .addSecurityItem(new SecurityRequirement()
+                        .addList("bearerAuth"));
     }
 }
