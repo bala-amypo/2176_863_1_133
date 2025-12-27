@@ -125,8 +125,6 @@
     <groupId>org.apache.maven.plugins</groupId>
     <artifactId>maven-surefire-plugin</artifactId>
     <version>3.2.5</version>
-
-    <!-- 🔴 THIS IS THE CRITICAL PART -->
     <dependencies>
         <dependency>
             <groupId>org.apache.maven.surefire</groupId>
@@ -134,17 +132,10 @@
             <version>3.2.5</version>
         </dependency>
     </dependencies>
-
     <configuration>
-        <!-- Disable JUnit Platform completely -->
-        <skipAfterFailureCount>0</skipAfterFailureCount>
-
-        <!-- Force TestNG -->
         <suiteXmlFiles>
             <suiteXmlFile>testng.xml</suiteXmlFile>
         </suiteXmlFiles>
-
-        <!-- REQUIRED for Java 17 + Spring Boot -->
         <useModulePath>false</useModulePath>
     </configuration>
 </plugin>
