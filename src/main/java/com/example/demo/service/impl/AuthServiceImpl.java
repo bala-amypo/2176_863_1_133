@@ -1,7 +1,6 @@
 package com.example.demo.service.impl;
 
 import com.example.demo.dto.AuthRequestDto;
-import com.example.demo.dto.AuthResponseDto;
 import com.example.demo.dto.RegisterRequestDto;
 import com.example.demo.entity.UserAccount;
 import com.example.demo.exception.BadRequestException;
@@ -11,21 +10,22 @@ import com.example.demo.service.AuthService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 public class AuthServiceImpl implements AuthService {
 
     private final UserAccountRepository userRepo;
-    private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final PasswordEncoder passwordEncoder;
 
     public AuthServiceImpl(UserAccountRepository userRepo,
-                           PasswordEncoder passwordEncoder,
-                           JwtUtil jwtUtil) {
+                           JwtUtil jwtUtil,
+                           PasswordEncoder passwordEncoder) {
         this.userRepo = userRepo;
-        this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -36,16 +36,14 @@ public class AuthServiceImpl implements AuthService {
 
         UserAccount user = new UserAccount();
         user.setEmail(dto.getEmail());
-        user.setFullName(dto.getFullName());
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
-        user.setRole(dto.getRole());
+        user.setRole(dto.getRole().toUpperCase());
 
         userRepo.save(user);
     }
 
     @Override
-    public AuthResponseDto login(AuthRequestDto dto) {
-
+    public String login(AuthRequestDto dto) {
         UserAccount user = userRepo.findByEmail(dto.getEmail())
                 .orElseThrow(() -> new BadRequestException("Invalid credentials"));
 
@@ -53,12 +51,10 @@ public class AuthServiceImpl implements AuthService {
             throw new BadRequestException("Invalid credentials");
         }
 
-        String token = jwtUtil.generateToken(user);
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("userId", user.getId());
+        claims.put("role", user.getRole());
 
-        return new AuthResponseDto(
-                token,
-                LocalDateTime.now()
-                        .plusSeconds(jwtUtil.getExpirationMillis() / 1000)
-        );
+        return jwtUtil.generateToken(claims, user.getEmail());
     }
 }
