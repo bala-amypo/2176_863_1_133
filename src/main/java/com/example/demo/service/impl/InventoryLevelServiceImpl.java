@@ -8,6 +8,7 @@ import com.example.demo.repository.InventoryLevelRepository;
 import com.example.demo.repository.ProductRepository;
 import com.example.demo.repository.StoreRepository;
 import com.example.demo.service.InventoryLevelService;
+
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -29,62 +30,31 @@ public class InventoryLevelServiceImpl implements InventoryLevelService {
     }
 
     @Override
-    public InventoryLevel createOrUpdateInventory(InventoryLevel inventory) {
+   
+public InventoryLevel createOrUpdateInventory(InventoryLevel inv) {
 
-        if (inventory == null) {
-            throw new BadRequestException("Inventory cannot be null");
-        }
-
-        if (inventory.getStore() == null || inventory.getProduct() == null) {
-            throw new BadRequestException("Store and Product are required");
-        }
-
-        return createOrUpdateInventory(
-                inventory.getStore().getId(),
-                inventory.getProduct().getId(),
-                inventory.getQuantity()
-        );
+    if (inv.getQuantity() < 0) {
+        throw new BadRequestException("Quantity must be >= 0");
     }
 
-    // =========================================================
-    // UPSERT LOGIC
-    // =========================================================
-    @Override
-    public InventoryLevel createOrUpdateInventory(Long storeId, Long productId, int quantity) {
+    Store store = storeRepo.findById(inv.getStore().getId())
+            .orElseThrow(() -> new BadRequestException("Store not found"));
 
-        if (quantity < 0) {
-            throw new BadRequestException("Quantity cannot be negative");
-        }
+    Product product = productRepo.findById(inv.getProduct().getId())
+            .orElseThrow(() -> new BadRequestException("Product not found"));
 
-        Store store = storeRepo.findById(storeId)
-                .orElseThrow(() -> new BadRequestException("Store not found"));
+    return inventoryRepo.findByStoreAndProduct(store, product)
+            .map(existing -> {
+                existing.setQuantity(inv.getQuantity());
+                return inventoryRepo.save(existing);
+            })
+            .orElseGet(() -> {
+                inv.setStore(store);
+                inv.setProduct(product);
+                return inventoryRepo.save(inv);
+            });
+}
 
-        Product product = productRepo.findById(productId)
-                .orElseThrow(() -> new BadRequestException("Product not found"));
-
-        return inventoryRepo
-                .findByStore_IdAndProduct_Id(storeId, productId)
-                .map(existing -> {
-                    // UPDATE PATH
-                    existing.setStore(store);
-                    existing.setProduct(product);
-                    existing.setQuantity(quantity);
-                    return inventoryRepo.save(existing);
-                })
-                .orElseGet(() -> {
-                    // CREATE PATH (FINAL FIX)
-                    InventoryLevel inv = new InventoryLevel();
-                    inv.setStore(store);
-                    inv.setProduct(product);
-                    inv.setQuantity(quantity);
-
-                    InventoryLevel saved = inventoryRepo.save(inv);
-
-                    // 🔥 IMPORTANT: reload entity so tests see store & product
-                    return inventoryRepo.findById(saved.getId())
-                            .orElse(saved);
-                });
-    }
 
     @Override
     public List<InventoryLevel> getInventoryForStore(Long storeId) {

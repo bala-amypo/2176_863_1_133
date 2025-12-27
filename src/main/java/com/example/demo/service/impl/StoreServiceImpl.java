@@ -1,6 +1,7 @@
 package com.example.demo.service.impl;
 
 import com.example.demo.entity.Store;
+import com.example.demo.exception.BadRequestException;
 import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.repository.StoreRepository;
 import com.example.demo.service.StoreService;
@@ -19,24 +20,10 @@ public class StoreServiceImpl implements StoreService {
 
     @Override
     public Store createStore(Store store) {
+        if (storeRepo.findByStoreName(store.getStoreName()).isPresent()) {
+            throw new BadRequestException("Store name already exists");
+        }
         return storeRepo.save(store);
-    }
-
-    @Override
-    public Store updateStore(Long id, Store store) {
-        Store existing = getStoreById(id);
-        existing.setStoreName(store.getStoreName());
-        existing.setAddress(store.getAddress());
-        existing.setRegion(store.getRegion());
-        existing.setActive(store.isActive());
-        return storeRepo.save(existing);
-    }
-
-    @Override
-    public void deactivateStore(Long id) {
-        Store store = getStoreById(id);
-        store.setActive(false);
-        storeRepo.save(store);
     }
 
     @Override
@@ -48,5 +35,22 @@ public class StoreServiceImpl implements StoreService {
     @Override
     public List<Store> getAllStores() {
         return storeRepo.findAll();
+    }
+
+    @Override
+    public Store updateStore(Long id, Store update) {
+        Store store = getStoreById(id);
+        store.setStoreName(update.getStoreName());
+        store.setAddress(update.getAddress());
+        store.setRegion(update.getRegion());
+        store.setActive(update.isActive());
+        return storeRepo.save(store);
+    }
+
+    @Override
+    public void deactivateStore(Long id) {
+        Store store = getStoreById(id);
+        store.setActive(false);
+        storeRepo.save(store);
     }
 }
