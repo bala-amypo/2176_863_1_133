@@ -1,24 +1,16 @@
 package com.example.demo.dto;
 
-import java.time.LocalDateTime;
-
 public class AuthResponseDto {
 
     private String token;
-    private LocalDateTime expiresAt;
 
-    public AuthResponseDto(String token, LocalDateTime expiresAt) {
+    public AuthResponseDto() {}
+
+    public AuthResponseDto(String token) {
         this.token = token;
-        this.expiresAt = expiresAt;
     }
-
-    // ===== Getters =====
 
     public String getToken() {
         return token;
-    }
-
-    public LocalDateTime getExpiresAt() {
-        return expiresAt;
     }
 }
