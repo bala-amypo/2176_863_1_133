@@ -28,9 +28,6 @@ public class InventoryLevelServiceImpl implements InventoryLevelService {
         this.productRepo = productRepo;
     }
 
-    // =========================================================
-    // REQUIRED BY TESTS
-    // =========================================================
     @Override
     public InventoryLevel createOrUpdateInventory(InventoryLevel inventory) {
 
